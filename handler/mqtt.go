@@ -2,8 +2,8 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -24,7 +24,11 @@ func NewMessageHandler(db *database.DB) mqtt.MessageHandler {
 			slog.Warn("Ignoring message on invalid topic", "topic", topic)
 			return
 		}
-		sensorID := parts[2]
+		sensorID, err := strconv.Atoi(parts[2])
+		if err != nil {
+			slog.Warn("Ignoring message on invalid sensor id", "error", err)
+			return
+		}
 
 		// Unmarshal JSON payload
 		var data model.SensorData
@@ -34,17 +38,9 @@ func NewMessageHandler(db *database.DB) mqtt.MessageHandler {
 		}
 
 		// Attempt to insert the data into the database
-		err := db.InsertReading(sensorID, data)
+		err = db.InsertReading(sensorID, data)
 		if err != nil {
-			if errors.Is(err, database.ErrUnknownSensor) {
-				slog.Warn(
-					"Rejected data from unknown sensor",
-					"sensor_id",
-					sensorID,
-				)
-			} else {
-				slog.Error("Failed to process sensor reading", "error", err, "sensor_id", sensorID)
-			}
+			slog.Error("Failed to process sensor reading", "error", err, "sensor_id", sensorID)
 			return
 		}
 
