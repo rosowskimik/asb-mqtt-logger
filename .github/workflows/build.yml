@@ -1,0 +1,42 @@
+name: Build Go Application
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["*"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build for Linux ${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goarch: [amd64, arm64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.3"
+
+      - name: Build
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -v -o rpi-data-logger-linux-${{ matrix.goarch }} .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-linux-${{ matrix.goarch }}
+          path: rpi-data-logger-linux-${{ matrix.goarch }}
+          if-no-files-found: error
