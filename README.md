@@ -2,7 +2,7 @@
 
 ## General Description
 
-This application is a Go service designed to run on a Raspberry Pi.
+This application is a Go service designed to run on a Linux system.
 It acts as the central data collector for a network of environment sensors.
 
 The service performs the following functions:
@@ -12,7 +12,7 @@ The service performs the following functions:
 - Parses incoming JSON data containing temperature, pressure, and humidity statistics.
 - Saves valid sensor readings to a local SQLite database.
 
-The database is structured with two tables: `sensors` for metadata (ID, name) and `sensor_readings` for the time-series data.
+The database is structured with one `sensor_readings` table for the time-series data.
 
 ## Build Instructions
 
